@@ -18,10 +18,10 @@ import Background from '../../assets/home-background.png';
 import Logo from '../../assets/logo.png';
 
 const Home: React.FC = () => {
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
 
   async function handleNavigate(): Promise<void> {
-    navigation.navigate('MainBottom', {
+    navigate('MainBottom', {
       screen: 'Dashboard',
     });
   }

@@ -9,24 +9,7 @@ import SearchInput from '../../components/SearchInput';
 import api from '../../services/api';
 import formatValue from '../../utils/formatValue';
 
-import {
-  Container,
-  Header,
-  FilterContainer,
-  Title,
-  CategoryContainer,
-  CategorySlider,
-  CategoryItem,
-  CategoryItemTitle,
-  FoodsContainer,
-  FoodList,
-  Food,
-  FoodImageContainer,
-  FoodContent,
-  FoodTitle,
-  FoodDescription,
-  FoodPricing,
-} from './styles';
+import * as S from './styles';
 
 interface Food {
   id: number;
@@ -51,15 +34,26 @@ const Dashboard: React.FC = () => {
   >();
   const [searchValue, setSearchValue] = useState('');
 
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
 
   async function handleNavigate(id: number): Promise<void> {
-    // Navigate do ProductDetails page
+    navigate('FoodDetails', { id });
   }
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // Load Foods from API
+      const response = await api.get('foods', {
+        params: {
+          category_like: selectedCategory,
+          name_like: searchValue,
+        },
+      });
+
+      const data = response.data.map(({ price, ...rest }: Food) => {
+        return { ...rest, formattedPrice: formatValue(price) };
+      });
+
+      setFoods(data);
     }
 
     loadFoods();
@@ -67,38 +61,45 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadCategories(): Promise<void> {
-      // Load categories from API
+      const response = await api.get('categories');
+
+      setCategories(response.data);
     }
 
     loadCategories();
   }, []);
 
   function handleSelectCategory(id: number): void {
-    // Select / deselect category
+    if (selectedCategory === id) {
+      setSelectedCategory(undefined);
+      return;
+    }
+
+    setSelectedCategory(id);
   }
 
   return (
-    <Container>
-      <Header>
+    <S.Container>
+      <S.Header>
         <Image source={Logo} />
         <Icon
           name="log-out"
           size={24}
           color="#FFB84D"
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => navigate('Home')}
         />
-      </Header>
-      <FilterContainer>
+      </S.Header>
+      <S.FilterContainer>
         <SearchInput
           value={searchValue}
           onChangeText={setSearchValue}
           placeholder="Qual comida você procura?"
         />
-      </FilterContainer>
+      </S.FilterContainer>
       <ScrollView>
-        <CategoryContainer>
-          <Title>Categorias</Title>
-          <CategorySlider
+        <S.CategoryContainer>
+          <S.Title>Categorias</S.Title>
+          <S.CategorySlider
             contentContainerStyle={{
               paddingHorizontal: 20,
             }}
@@ -106,7 +107,7 @@ const Dashboard: React.FC = () => {
             showsHorizontalScrollIndicator={false}
           >
             {categories.map(category => (
-              <CategoryItem
+              <S.CategoryItem
                 key={category.id}
                 isSelected={category.id === selectedCategory}
                 onPress={() => handleSelectCategory(category.id)}
@@ -117,38 +118,38 @@ const Dashboard: React.FC = () => {
                   style={{ width: 56, height: 56 }}
                   source={{ uri: category.image_url }}
                 />
-                <CategoryItemTitle>{category.title}</CategoryItemTitle>
-              </CategoryItem>
+                <S.CategoryItemTitle>{category.title}</S.CategoryItemTitle>
+              </S.CategoryItem>
             ))}
-          </CategorySlider>
-        </CategoryContainer>
-        <FoodsContainer>
-          <Title>Pratos</Title>
-          <FoodList>
+          </S.CategorySlider>
+        </S.CategoryContainer>
+        <S.FoodsContainer>
+          <S.Title>Pratos</S.Title>
+          <S.FoodList>
             {foods.map(food => (
-              <Food
+              <S.Food
                 key={food.id}
                 onPress={() => handleNavigate(food.id)}
                 activeOpacity={0.6}
                 testID={`food-${food.id}`}
               >
-                <FoodImageContainer>
+                <S.FoodImageContainer>
                   <Image
                     style={{ width: 88, height: 88 }}
                     source={{ uri: food.thumbnail_url }}
                   />
-                </FoodImageContainer>
-                <FoodContent>
-                  <FoodTitle>{food.name}</FoodTitle>
-                  <FoodDescription>{food.description}</FoodDescription>
-                  <FoodPricing>{food.formattedPrice}</FoodPricing>
-                </FoodContent>
-              </Food>
+                </S.FoodImageContainer>
+                <S.FoodContent>
+                  <S.FoodTitle>{food.name}</S.FoodTitle>
+                  <S.FoodDescription>{food.description}</S.FoodDescription>
+                  <S.FoodPricing>{food.formattedPrice}</S.FoodPricing>
+                </S.FoodContent>
+              </S.Food>
             ))}
-          </FoodList>
-        </FoodsContainer>
+          </S.FoodList>
+        </S.FoodsContainer>
       </ScrollView>
-    </Container>
+    </S.Container>
   );
 };
 
